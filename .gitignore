@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Data
+data/raw/
+
+# Logs
+logs/
+
+# Environment
+.env
+new 4.txt
