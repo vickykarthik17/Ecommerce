@@ -796,5 +796,4 @@ Transform
    ↓
 Load
 ```
-
 If a transformation rule changes later, we can run the pipeline again from the original raw data.
