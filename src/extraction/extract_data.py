@@ -21,7 +21,11 @@ for file_name in expected_files:
         print(f"{file_name}: File not found")
         continue
 
-    data = pd.read_csv(file_path)
+    try:
+        data = pd.read_csv(file_path)
+    except Exception:
+        print(f"{file_name}: Could not read file")
+        continue
 
     if data.empty:
         print(f"{file_name}: Empty dataset")
