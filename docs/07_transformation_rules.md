@@ -1,41 +1,37 @@
 # Sprint 2: Data Transformation
 
-Date: 13 August 2026
+Date: 15 August 2026
 
 ## Objective
 
-Transform the validated raw Olist datasets into clean and analysis-ready datasets without changing the original files.
+Transform the validated raw Olist datasets into clean, consistent, and analysis-ready datasets for PostgreSQL loading.
 
-Raw data remains in:
+The original files in `data/raw/` remain unchanged and are treated as the source of truth.
 
-`data/raw/`
-
-Transformed data is stored in:
+The transformed datasets are stored in:
 
 `data/processed/`
 
 ---
 
-## 1. Transformation Approach
+## Transformation Approach
 
-For each dataset, the process is:
+For each dataset:
 
-1. Inspect the data
-2. Identify required transformations
+1. Inspect the source data
+2. Define the required transformation rules
 3. Standardize data types and values
-4. Handle duplicates and nulls based on business meaning
-5. Save the cleaned dataset
-6. Validate the result
+4. Handle duplicates and missing values according to business meaning
+5. Validate the cleaned output
+6. Save the processed dataset
 
-The raw data is never modified.
+This workflow was applied consistently across all tables so that the processed layer is reliable for downstream analysis and database ingestion.
+
+Missing values were preserved when they represented valid business information, while duplicate and critical null checks were enforced where required for key integrity.
 
 ---
 
-## 2. Customers Dataset
-
-Source:
-
-`olist_customers_dataset.csv`
+## 1. Customers
 
 Output:
 
@@ -43,29 +39,21 @@ Output:
 
 ### Transformations
 
-- Converted `customer_id` and `customer_unique_id` to string type because they are identifiers.
-- Trimmed extra spaces from `customer_city`.
-- Converted `customer_city` to lowercase for consistency.
-- Converted `customer_state` to uppercase.
-- Checked for duplicate and null customer IDs.
+- Converted customer identifiers to string.
+- Trimmed and converted city names to lowercase.
+- Converted state codes to uppercase.
 
 ### Validation
 
 - Rows: 99,441
-- Columns: 5
 - Duplicate `customer_id`: 0
-- Null `customer_id`: 0
-- Null `customer_unique_id`: 0
+- Required identifier fields contain no nulls.
 
 **Status: Complete**
 
 ---
 
-## 3. Orders Dataset
-
-Source:
-
-`olist_orders_dataset.csv`
+## 2. Orders
 
 Output:
 
@@ -73,43 +61,22 @@ Output:
 
 ### Transformations
 
-- Converted `order_id` and `customer_id` to string type.
+- Converted `order_id` and `customer_id` to string.
 - Standardized `order_status` to lowercase.
-- Converted all order date/time columns to Pandas datetime format.
-- Preserved existing null values in delivery-related date columns because they may represent orders that were not completed or delivered.
-
-### Date Columns
-
-- `order_purchase_timestamp`
-- `order_approved_at`
-- `order_delivered_carrier_date`
-- `order_delivered_customer_date`
-- `order_estimated_delivery_date`
+- Converted order date columns to datetime.
+- Preserved missing delivery and approval dates.
 
 ### Validation
 
 - Rows: 99,441
-- Columns: 8
 - Duplicate `order_id`: 0
-- Null `order_id`: 0
-- Null `customer_id`: 0
-- Date columns successfully converted to `datetime64[ns]`
-
-Existing null values were preserved:
-
-- `order_approved_at`: 160
-- `order_delivered_carrier_date`: 1,783
-- `order_delivered_customer_date`: 2,965
+- Required identifier fields contain no nulls.
 
 **Status: Complete**
 
 ---
 
-## 4. Order Items Dataset
-
-Source:
-
-`olist_order_items_dataset.csv`
+## 3. Order Items
 
 Output:
 
@@ -117,28 +84,22 @@ Output:
 
 ### Transformations
 
-- Converted `order_id`, `product_id`, and `seller_id` to string identifiers.
-- Kept `order_item_id` as an integer sequence number.
+- Converted `order_id`, `product_id`, and `seller_id` to string.
+- Kept `order_item_id` as an integer sequence.
 - Converted `shipping_limit_date` to datetime.
-- Kept `price` and `freight_value` as numeric values.
-- No null handling was required.
+- Kept price and freight values as numeric.
 
 ### Validation
 
 - Rows: 112,650
-- Columns: 7
 - Duplicate `order_id + order_item_id`: 0
-- Null values: 0
+- No null values.
 
 **Status: Complete**
 
 ---
 
-## 5. Payments Dataset
-
-Source:
-
-`olist_order_payments_dataset.csv`
+## 4. Payments
 
 Output:
 
@@ -146,28 +107,21 @@ Output:
 
 ### Transformations
 
-- Converted `order_id` to a string identifier.
-- Standardized `payment_type` by trimming spaces and converting to lowercase.
-- Kept `payment_sequential` and `payment_installments` as integers.
-- Kept `payment_value` as a numeric value.
-- No null handling was required.
+- Converted `order_id` to string.
+- Standardized `payment_type` to lowercase.
+- Kept payment sequence, installments, and value as numeric fields.
 
 ### Validation
 
 - Rows: 103,886
-- Columns: 5
 - Duplicate `order_id + payment_sequential`: 0
-- Null values: 0
+- No null values.
 
 **Status: Complete**
 
 ---
 
-## 6. Reviews Dataset
-
-Source:
-
-`olist_order_reviews_dataset.csv`
+## 5. Reviews
 
 Output:
 
@@ -175,88 +129,152 @@ Output:
 
 ### Transformations
 
-- Converted `review_id` and `order_id` to string identifiers.
-- Converted `review_creation_date` and `review_answer_timestamp` to datetime.
+- Converted `review_id` and `order_id` to string.
+- Converted review date fields to datetime.
 - Kept `review_score` as an integer.
-- Preserved null values in review comment fields because they represent optional customer feedback.
+- Preserved missing review comments because they are optional.
 
 ### Validation
 
 - Rows: 99,224
-- Columns: 7
 - Duplicate `review_id + order_id`: 0
-- Required identifier and score fields contain no nulls.
-- Comment field nulls were preserved.
+- Required fields contain no nulls.
 
 **Status: Complete**
 
 ---
 
-## 7. Files Created
+## 6. Products
 
-### Transformation scripts
+Output:
 
-- `src/transformation/inspect_data.py`
-- `src/transformation/transform_customers.py`
-- `src/transformation/validate_customers.py`
-- `src/transformation/transform_orders.py`
-- `src/transformation/validate_orders.py`
-- `src/transformation/transform_payments.py` (if created)
-- `src/transformation/validate_payments.py` (if created)
-- `src/transformation/transform_reviews.py` (if created)
-- `src/transformation/validate_reviews.py` (if created)
+`products_clean.csv`
 
-### Processed datasets
+### Transformations
 
-- `data/processed/customers_clean.csv`
-- `data/processed/orders_clean.csv`
-- `data/processed/order_items_clean.csv`
-- `data/processed/payments_clean.csv`
-- `data/processed/reviews_clean.csv`
+- Converted `product_id` to string.
+- Standardized product category names to lowercase.
+- Corrected source column naming:
+  - `product_name_lenght` → `product_name_length`
+  - `product_description_lenght` → `product_description_length`
+- Preserved missing product attributes.
+
+### Validation
+
+- Rows: 32,951
+- Duplicate `product_id`: 0
+
+**Status: Complete**
 
 ---
 
-## 8. Sprint 2 Progress Summary
+## 7. Sellers
 
-### Completed Datasets (5/9)
+Output:
 
-The following datasets have been successfully inspected, transformed, and validated:
+`sellers_clean.csv`
 
-| Dataset | Rows | Columns | Status | Key Validations |
-|---------|------|---------|--------|-----------------|
-| Customers | 99,441 | 5 | ✓ Complete | 0 duplicates, 0 nulls in IDs |
-| Orders | 99,441 | 8 | ✓ Complete | 0 duplicates, datetime conversion verified |
-| Order Items | 112,650 | 7 | ✓ Complete | 0 duplicate composite keys, 0 nulls |
-| Payments | 103,886 | 5 | ✓ Complete | 0 duplicate composite keys, 0 nulls |
-| Reviews | 99,224 | 7 | ✓ Complete | 0 duplicate IDs, optional comment nulls preserved |
+### Transformations
 
-### Remaining Datasets (4/9)
+- Converted `seller_id` to string.
+- Standardized city names to lowercase.
+- Standardized state codes to uppercase.
+- Kept ZIP code prefix as numeric.
 
-The following datasets still need to be transformed and validated:
+### Validation
 
-1. **Products** - Product catalog and attributes
-2. **Sellers** - Seller information and locations  
-3. **Geolocation** - Geographic coordinates for cities
-4. **Product Category Translation** - Category name translations
+- Rows: 3,095
+- Duplicate `seller_id`: 0
+- No null values.
 
-### Data Transformation Statistics
+**Status: Complete**
 
-- **Total Records Processed**: 614,686 across 5 datasets
-- **Total Rows/Transactions**: 614,686
-- **Composite Key Integrity**: 100% (0 duplicates across all datasets)
-- **Data Quality**: Excellent with appropriate null handling
-- **Date/Time Columns**: 6 datetime columns successfully converted
-- **Identifier Standardization**: All IDs converted to string type for consistency
+---
 
-### Quality Metrics
+## 8. Geolocation
 
-- **Data Completeness**: 99.7% (minimal nulls in optional fields only)
-- **Referential Integrity**: Composite keys verified for all transaction datasets
-- **Type Standardization**: Consistent identifier, numeric, and datetime handling across datasets
+Output:
 
-### Next Steps
+`geolocation_clean.csv`
 
-1. Transform remaining 4 datasets (Products, Sellers, Geolocation, Category Translation)
-2. Perform final integration testing across all cleaned datasets
+### Transformations
+
+- Standardized city names to lowercase.
+- Standardized state codes to uppercase.
+- Removed exact duplicate rows.
+- Repeated ZIP code prefixes were preserved because they can represent multiple valid geographic records.
+
+### Validation
+
+- Original rows: 1,000,163
+- Exact duplicates removed: 261,836
+- Final rows: 738,327
+- Duplicate rows after transformation: 0
+- No null values.
+
+**Status: Complete**
+
+---
+
+## 9. Product Category Translation
+
+Output:
+
+`category_translation_clean.csv`
+
+### Transformations
+
+- Standardized both category fields to lowercase.
+- Trimmed extra spaces.
+
+### Validation
+
+- Rows: 71
+- Duplicate `product_category_name`: 0
+- No null values.
+
+**Status: Complete**
+
+---
+
+## Overall Sprint 2 Validation
+
+All 9 datasets were transformed and validated as part of the Sprint 2 data preparation workflow.
+
+The final processed layer was reviewed for:
+
+- Expected file creation
+- Row and column counts
+- Primary and composite key uniqueness
+- Null values and missing-data handling
+- Duplicate record removal or preservation based on business meaning
+- Data-type standardization for identifiers, dates, and numeric fields
+
+Across the cleaned datasets, the processed layer reflects a consistent and reliable foundation for PostgreSQL ingestion and downstream business analysis.
+
+---
+
+## Sprint 2 Status
+
+**Completed:**
+
+- Data transformation across all 9 Olist datasets
+- Data quality validation for key fields and duplicate checks
+- Processed dataset creation in `data/processed/`
+- Transformation documentation and summary reporting
+
+**Current outcome:**
+
+The transformation stage is complete and the processed datasets are ready for the next step: loading into PostgreSQL.
+
+---
+
+## Final Sprint 2 Summary
+
+The transformation work followed a consistent approach for all datasets: standardize names, normalize IDs, convert date columns to datetime, preserve valid nulls, remove meaningful duplicates, and confirm key integrity before saving. This ensures the processed layer is not only clean but also logically aligned with the source data and business requirements.
+
+Throughout the sprint, every dataset was validated individually, and the combined processed layer was checked at an overall level. The resulting structure is coherent, internally consistent, and ready for database loading and analytical use.
+
+**Overall result: Successful completion of Sprint 2 data transformation and validation.**
 3. Generate comprehensive data quality report
 4. Archive raw data backups and document transformation lineage
