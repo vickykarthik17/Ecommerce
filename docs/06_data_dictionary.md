@@ -3,8 +3,8 @@
 Project: E-Commerce End-to-End ETL Pipeline
 Dataset: Olist E-Commerce Dataset
 Project goal: Build an end-to-end ETL pipeline that extracts raw data, cleans and transforms it, stores processed data in PostgreSQL, and makes the pipeline ready for further use.
-Current stage: Sprint 1
-Current date: August 11, 2026
+Current stage: Sprint 3
+Current date: August 18, 2026
 
 2. Sprint Plan
 
@@ -26,6 +26,77 @@ Focus: Building the extraction layer
 Completed: Created the extraction module with extract_data.py, expected_columns.py, and validate_data.py. The extraction process now reads raw CSV files, checks that each file exists, ensures datasets are not empty, validates expected columns, and marks datasets as valid.
 Validation result: All nine datasets passed extraction validation. The counts and columns were confirmed, and each source file was marked valid.
 Not done yet: Extraction logging was discussed but not implemented.
+
+3.3 August 18, 2026
+Focus: PostgreSQL database setup, data loading, and validation
+Completed:
+- Installed and configured PostgreSQL 18.
+- Created the ecommerce PostgreSQL database.
+- Created the PostgreSQL schema with 9 tables and defined primary and foreign-key relationships.
+- Configured Python database connectivity using psycopg and environment variables.
+- Successfully tested the Python to PostgreSQL connection.
+- Loaded all 9 processed Olist datasets into PostgreSQL.
+- Used a separate bulk loading script for the large geolocation dataset containing 738,327 rows.
+- Verified that PostgreSQL row counts match the processed datasets.
+- Validated foreign-key relationships across the database.
+- All orphan-record checks returned zero results.
+
+Data Loaded:
+
+| Table | Rows |
+|---|---:|
+| customers | 99,441 |
+| orders | 99,441 |
+| order_items | 112,650 |
+| payments | 103,886 |
+| reviews | 99,224 |
+| products | 32,951 |
+| sellers | 3,095 |
+| geolocation | 738,327 |
+| category_translation | 71 |
+
+Blockers and Resolutions:
+
+1. Timestamp datatype mismatch during order loading
+
+   PostgreSQL rejected missing datetime values because Pandas represented them as NaN, which PostgreSQL interpreted as a numeric value instead of NULL.
+
+   Resolution: Converted Pandas missing values to Python None before loading:
+
+   data = data.astype(object).where(pd.notna(data), None)
+
+   Orders were then loaded successfully.
+
+2. Duplicate primary-key error during product loading
+
+   The products dataset was accidentally loaded more than once, causing a duplicate product_id error.
+
+   Resolution: Avoided rerunning datasets that had already been loaded. The issue also highlighted the need to make the final loading process safe for repeated execution.
+
+3. Large geolocation dataset
+
+   The geolocation dataset contains 738,327 rows, making row-by-row insertion inefficient.
+
+   Resolution: Created a separate load_geolocation.py script using PostgreSQL bulk COPY loading.
+
+Validation Result:
+
+- Row-count validation: Passed
+- Foreign-key validation: Passed
+- Orphan-record checks: Passed
+- All 9 datasets successfully loaded into PostgreSQL.
+
+Sprint 3 Progress:
+
+PostgreSQL database setup and data loading are complete. Initial database integrity validation has also been completed successfully.
+
+Next Steps:
+
+- Validate primary and composite keys in PostgreSQL.
+- Complete database validation.
+- Improve the loading process for safe reruns.
+- Commit and push the PostgreSQL loading work.
+- Continue with the remaining Sprint 3 tasks.
 
 4. Source Dataset Summary
 
@@ -175,7 +246,8 @@ Sprint 2 (Aug 14 - Aug 17): Cleaning and transformation.
 Planned work: Handle duplicates, handle missing values, convert data types, convert date and timestamp columns, standardize text fields, create cleaned datasets, apply business rules.
 
 Sprint 3 (Aug 18 - Aug 21): PostgreSQL and data loading.
-Planned work: Design target tables, define primary and foreign keys, choose data types, create tables, load transformed datasets, validate counts and relationships.
+Completed: PostgreSQL 18 was installed and configured, the ecommerce database and schema were created, all nine processed datasets were loaded into PostgreSQL, row counts were validated, foreign keys were checked, and orphan-record validation returned zero results.
+Remaining work: Validate primary and composite keys in PostgreSQL, improve the loading process for safe reruns, and finalize the database validation checklist.
 
 Sprint 4 (Aug 22 - Aug 24): Automation and testing.
 Planned work: Connect ETL stages, automate the pipeline, add logging, test the complete pipeline, handle failures, validate final data quality.
