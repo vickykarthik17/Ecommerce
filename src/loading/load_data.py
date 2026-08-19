@@ -2,9 +2,28 @@ from pathlib import Path
 import psycopg
 from db_config import DB_CONFIG
 
-
 project_root = Path(__file__).resolve().parents[2]
 processed_data_path = project_root / "data" / "processed"
+
+
+def reset_tables(connection):
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            TRUNCATE TABLE
+                reviews,
+                payments,
+                order_items,
+                products,
+                sellers,
+                orders,
+                customers,
+                category_translation,
+                geolocation
+                CASCADE;
+        """)
+
+    connection.commit()
+    print("Database tables reset")
 
 
 def load_csv_to_postgres(file_name, table_name, columns):
@@ -33,6 +52,8 @@ def load_csv_to_postgres(file_name, table_name, columns):
 
 
 if __name__ == "__main__":
+    with psycopg.connect(**DB_CONFIG) as connection:
+        reset_tables(connection)
 
     load_csv_to_postgres(
         "customers_clean.csv",

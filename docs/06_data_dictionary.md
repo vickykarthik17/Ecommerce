@@ -493,7 +493,7 @@ These are the main issues identified so far:
 
 # 16. Current ETL Architecture
 
-The project is being developed as an end-to-end ETL pipeline.
+The project is implemented as an end-to-end ETL pipeline. Each stage runs from the project root, uses the same Python interpreter through `sys.executable`, and stops the pipeline when a stage fails.
 
 Current architecture:
 
@@ -514,15 +514,29 @@ Current architecture:
                     │
                     ▼
           TRANSFORMATION
-             (Next stage)
+       Dataset-specific cleaning
+       and data-quality validation
                     │
                     ▼
-             PostgreSQL
-             (Later stage)
+          PostgreSQL full refresh
+       TRUNCATE ... CASCADE + COPY
                     │
                     ▼
-          Final ETL Pipeline
+          Database validation
+       Counts, keys, and foreign keys
 ```
+
+The orchestration entry point is `src/run_pipeline.py`. Its execution order is:
+
+1. Extract the raw source files.
+2. Validate source file existence, contents, and expected columns.
+3. Transform customers, orders, order items, payments, reviews, products, sellers, geolocation, and category translation.
+4. Validate all processed datasets.
+5. Reset the PostgreSQL target tables and bulk-load the processed datasets with `COPY`.
+6. Load the large geolocation dataset through its dedicated loader.
+7. Validate database row counts, primary keys, composite keys, and foreign-key relationships.
+
+The raw files in `data/raw/` remain unchanged. Processed files are written to `data/processed/`, which provides a clear source-to-target boundary and allows the complete pipeline to be rerun from the original inputs.
 
 ---
 
@@ -552,9 +566,8 @@ Current architecture:
 
 ### Pending
 
-- Additional extraction testing
-- Extraction logging
-- Any remaining Sprint 1 tasks
+- Structured extraction logging is still a future improvement.
+- Additional automated end-to-end tests are still planned.
 
 ---
 
@@ -562,15 +575,15 @@ Current architecture:
 
 **Goal:** Cleaning + Transformation
 
-Planned work:
+Completed:
 
-- Handle duplicates according to documented rules.
-- Handle missing values.
-- Convert data types.
-- Convert date and timestamp columns.
-- Standardize text fields.
-- Create cleaned/curated datasets.
-- Apply business rules identified during profiling.
+- Transformed all nine datasets into `data/processed/`.
+- Applied the documented rules for missing values, duplicate rows, identifiers, text fields, and date columns.
+- Renamed the misspelled source product columns to `product_name_length` and `product_description_length`.
+- Removed only exact duplicate geolocation rows while preserving valid repeated ZIP-prefix observations.
+- Validated the processed datasets with the transformation validation scripts.
+
+Outcome: All nine processed datasets passed the current transformation and data-quality checks.
 
 ---
 
@@ -578,15 +591,17 @@ Planned work:
 
 **Goal:** PostgreSQL + Data Loading
 
-Planned work:
+Completed:
 
-- Design target database tables.
-- Define primary keys.
-- Define foreign keys.
-- Define appropriate PostgreSQL data types.
-- Create tables.
-- Load transformed datasets.
-- Validate loaded row counts and relationships.
+- Configured PostgreSQL 18 and created the `ecommerce` database.
+- Created the relational schema for all nine processed datasets.
+- Defined primary keys, composite keys, and foreign keys based on source profiling.
+- Configured the Python connection with the PostgreSQL `dbname` parameter.
+- Replaced row-by-row inserts with PostgreSQL `COPY` bulk loading.
+- Implemented full-refresh loading with `TRUNCATE ... CASCADE` before each complete batch load.
+- Loaded all processed datasets and validated row counts, keys, and foreign-key relationships.
+
+Outcome: The database contains the complete processed dataset and can be safely reloaded by rerunning the full batch pipeline.
 
 ---
 
@@ -594,14 +609,18 @@ Planned work:
 
 **Goal:** Automation + Testing
 
-Planned work:
+Completed:
 
-- Connect the ETL stages.
-- Automate the pipeline.
-- Add required logging.
-- Test the complete pipeline.
-- Handle pipeline failures.
-- Validate final data quality.
+- Connected extraction, validation, transformation, loading, and database validation in `src/run_pipeline.py`.
+- Configured the orchestrator to stop immediately when a stage returns a failure code.
+- Executed a successful end-to-end pipeline run.
+- Verified that the final database matched the processed dataset sizes and relationship rules.
+
+Remaining work:
+
+- Add structured logging and clearer failure summaries.
+- Expand automated end-to-end test coverage.
+- Improve pipeline observability.
 
 ---
 
@@ -617,6 +636,8 @@ Planned work:
 - Setup instructions.
 - Final ETL workflow documentation.
 - Final project demonstration.
+
+The core ETL pipeline is operational. The remaining release work is focused on documentation cleanup, repeatable testing, structured logging, and observability rather than on completing the core extraction, transformation, or database-loading path.
 
 ---
 
@@ -732,3 +753,98 @@ Transformation and validation are complete. The processed datasets are ready for
 **Next Steps:**
 
 Prepare the PostgreSQL target schema, including table structure, primary keys, foreign keys, and data type mapping.
+
+---
+
+# 20. Implementation Progress: August 19-20, 2026
+
+This section records the database and orchestration decisions that changed the ETL pipeline from a collection of working scripts into a repeatable end-to-end process. It complements the dataset definitions above by explaining how the processed data is validated and delivered to PostgreSQL.
+
+## August 19, 2026: PostgreSQL Setup, Loading, and Validation
+
+### Completed
+
+- Configured PostgreSQL 18 as the target database.
+- Created the `ecommerce` database and relational schema for all nine processed datasets.
+- Defined primary keys, composite keys, and foreign keys from the profiling results.
+- Tested Python-to-PostgreSQL connectivity with `psycopg` and environment-based configuration.
+- Replaced individual `INSERT` statements with PostgreSQL `COPY` bulk loading.
+- Loaded the processed datasets and validated row counts, keys, and foreign-key relationships.
+- Loaded geolocation separately because its processed size is 738,327 rows.
+
+### Blockers and resolutions
+
+| Blocker | Cause | Resolution |
+|---|---|---|
+| PostgreSQL connection failure | The connection configuration used `database`, which PostgreSQL does not accept as the database-name option. | Changed the configuration to use `dbname`. The connection test then passed. |
+| Inefficient loading approach | Individual `INSERT` operations would require too many database operations for the larger datasets. | Replaced row-by-row inserts with PostgreSQL `COPY` bulk loading. |
+| Product loading failure | Pandas wrote integer product attributes as values such as `40.0`, but PostgreSQL expected integer text. | Converted `product_name_length`, `product_description_length`, and `product_photos_qty` to integer strings while preserving missing values as blanks for PostgreSQL `NULL` handling. |
+| Large geolocation load | The processed geolocation dataset contains 738,327 rows. | Used the dedicated geolocation loader with bulk `COPY`. |
+
+## August 20, 2026: Orchestration and Repeat-Safe Loading
+
+### Pipeline execution order
+
+The orchestration script `src/run_pipeline.py` runs the stages in a fixed order:
+
+```text
+Extract source data
+   |
+Validate source data
+   |
+Transform nine datasets
+   |
+Validate processed datasets
+   |
+Reset PostgreSQL tables
+   |
+Bulk-load processed datasets
+   |
+Load geolocation
+   |
+Validate the database
+```
+
+Each stage is executed with `subprocess.run()` and `sys.executable`. A non-zero exit code stops the pipeline and identifies the failed stage, preventing later stages from running against incomplete data.
+
+### Repeat-safe full-refresh loading
+
+The first end-to-end run failed during loading because the database still contained records from an earlier loading test. PostgreSQL correctly rejected the second load with a duplicate primary-key error for `customer_id = 06b8999e2fba1a1fbc88172c00ba8bc7`.
+
+The loading stage now uses PostgreSQL full-refresh loading and resets the destination before loading a complete batch:
+
+```text
+TRUNCATE TABLE ... CASCADE
+   |
+   ▼
+COPY processed CSV files into PostgreSQL
+```
+
+This full-refresh strategy is appropriate because every run processes the complete source dataset. It removes stale rows, avoids duplicate-key conflicts on reruns, and makes the pipeline repeatable without manual database cleanup.
+
+### Successful end-to-end result
+
+The complete pipeline passed extraction, source validation, all nine transformations, processed-data validation, PostgreSQL reset, bulk loading, geolocation loading, and database validation.
+
+| Dataset | Final database rows |
+|---|---:|
+| Customers | 99,441 |
+| Orders | 99,441 |
+| Order Items | 112,650 |
+| Payments | 103,886 |
+| Reviews | 99,224 |
+| Products | 32,951 |
+| Sellers | 3,095 |
+| Geolocation | 738,327 |
+| Category Translation | 71 |
+
+### Final validation outcome
+
+- All applicable primary-key and composite-key checks passed.
+- All configured foreign-key checks passed.
+- Orphan-record checks returned zero results for Orders to Customers, Order Items to Orders, Order Items to Products, Order Items to Sellers, Payments to Orders, and Reviews to Orders.
+- The geolocation transformation produced 738,327 rows after exact duplicate removal. Its status output was corrected to report the row count without an extra blank value.
+
+## Current Focus
+
+The core ETL pipeline is operational. The next improvements are structured logging, clearer failure reporting, stronger end-to-end test coverage, and improved observability. These additions will make failures easier to diagnose while preserving the current extraction, transformation, validation, and full-refresh loading behavior.
