@@ -17,5 +17,5 @@ data["geolocation_state"]=data["geolocation_state"].str.strip().str.upper()
 data=data.drop_duplicates()
 data.to_csv(output_file,index=False)
 
-print(f"Geolocation transformed:  {len(data)} rows ")
-print(f"Saved to: {output_file} ")
+print(f"Geolocation transformed: {len(data)} rows")
+print(f"Saved to: {output_file}")
