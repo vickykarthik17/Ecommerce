@@ -1,30 +1,29 @@
-CREATE TABLE customers(
+CREATE TABLE customers (
     customer_id VARCHAR(50) PRIMARY KEY,
-    customer_unique_id VARCHAR (50) NOT NULL,
+    customer_unique_id VARCHAR(50) NOT NULL,
     customer_zip_code_prefix INTEGER,
     customer_city VARCHAR(200),
-    Customer_state VARCHAR(2)
+    customer_state VARCHAR(2)
 );
 
-create table sellers(
+CREATE TABLE sellers (
     seller_id VARCHAR(50) PRIMARY KEY,
     seller_zip_code_prefix INTEGER,
     seller_city VARCHAR(200),
     seller_state CHAR(2)
 );
 
-create table products(
-    product_id varchar(50) primary key,
-    product_category_name varchar(200),
-    product_name_length integer,
-    product_description_length integer,
-    product_photos_qty integer,
-    product_weight_g numeric(10,2)
-    product_length_cm numeric(10,2),
-    product_height_cm numeric(10,2),
-    product_width_cm numeric(10,2)
+CREATE TABLE products (
+    product_id VARCHAR(50) PRIMARY KEY,
+    product_category_name VARCHAR(200),
+    product_name_length INTEGER,
+    product_description_length INTEGER,
+    product_photos_qty INTEGER,
+    product_weight_g NUMERIC(10,2),
+    product_length_cm NUMERIC(10,2),
+    product_height_cm NUMERIC(10,2),
+    product_width_cm NUMERIC(10,2)
 );
-
 
 CREATE TABLE category_translation (
     product_category_name VARCHAR(100) PRIMARY KEY,
@@ -45,6 +44,7 @@ CREATE TABLE orders (
         FOREIGN KEY (customer_id)
         REFERENCES customers(customer_id)
 );
+
 CREATE TABLE order_items (
     order_id VARCHAR(50) NOT NULL,
     order_item_id INTEGER NOT NULL,
@@ -60,7 +60,6 @@ CREATE TABLE order_items (
         FOREIGN KEY (order_id)
         REFERENCES orders(order_id),
 
-    
     CONSTRAINT fk_order_items_product
         FOREIGN KEY (product_id)
         REFERENCES products(product_id),
@@ -69,7 +68,8 @@ CREATE TABLE order_items (
         FOREIGN KEY (seller_id)
         REFERENCES sellers(seller_id)
 );
-    CREATE TABLE payments (
+
+CREATE TABLE payments (
     order_id VARCHAR(50) NOT NULL,
     payment_sequential INTEGER NOT NULL,
     payment_type VARCHAR(30) NOT NULL,
@@ -96,7 +96,8 @@ CREATE TABLE reviews (
 
     CONSTRAINT fk_reviews_order
         FOREIGN KEY (order_id)
-        REFERENCES orders(order_id) );
+        REFERENCES orders(order_id)
+);
 
 CREATE TABLE geolocation (
     geolocation_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
