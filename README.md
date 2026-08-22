@@ -2,7 +2,7 @@
 
 An end-to-end batch ETL pipeline built with Python and PostgreSQL using the Olist Brazilian E-Commerce Public Dataset.
 
-The pipeline extracts raw e-commerce data, validates the source files, transforms and cleans the datasets, loads the processed data into PostgreSQL, and performs database-level validation.
+The pipeline extracts raw e-commerce data, validates source files, transforms and cleans the datasets, loads the processed data into PostgreSQL, and performs database-level validation.
 
 ---
 
@@ -12,25 +12,18 @@ The project demonstrates a complete ETL workflow:
 
 ```text
 Olist CSV Files
-      :
       ↓
 Extraction
-      :
       ↓
 Source Validation
-      :
       ↓
 Transformation
-      :
       ↓
 Data Quality Validation
-      :
       ↓
 PostgreSQL Loading
-      :
       ↓
 Database Validation
-      :
       ↓
 Logging & Error Handling
 
@@ -72,10 +65,10 @@ Transformation
 Standardizes data types.
 Normalizes text fields.
 Converts date columns.
-Handles meaningful missing values.
+Preserves meaningful missing values.
 Removes confirmed exact duplicates.
 Renames inconsistent source columns.
-Prepares CSV files for PostgreSQL.
+Prepares processed CSV files for PostgreSQL.
 Loading
 
 Processed datasets are loaded into PostgreSQL using PostgreSQL COPY for efficient bulk loading.
@@ -83,7 +76,6 @@ Processed datasets are loaded into PostgreSQL using PostgreSQL COPY for efficien
 The loading process uses a full-refresh approach:
 
 TRUNCATE existing tables
-        :
         ↓
 Bulk load processed CSV files
 Validation
@@ -93,7 +85,7 @@ Validation is performed at multiple stages:
 Source validation
 Transformation validation
 Database row-count validation
-Primary/composite key validation
+Primary and composite key validation
 Foreign-key relationship validation
 Logging
 
@@ -113,23 +105,53 @@ Ecommerce/
 │
 ├── data/
 │   ├── raw/
-│   └── processed/
+│   ├── processed/
+│   └── profiling/
 │
 ├── docs/
 │   ├── 06_data_dictionary.md
-│   └── 07_transformation_rules.md
+│   ├── 07_transformation_rules.md
+│   └── 08_postgresql_schema.md
 │
 ├── sql/
 │   └── schema.sql
 │
 ├── src/
 │   ├── extraction/
+│   │   ├── expected_columns.py
+│   │   ├── extract_data.py
+│   │   └── validate_data.py
+│   │
 │   ├── profiling/
+│   │   ├── analyse_keys.py
+│   │   ├── analyse_relationships.py
+│   │   ├── investigate_geolocation.py
+│   │   ├── investigate_reviews.py
+│   │   └── profile_sources.py
+│   │
 │   ├── transformation/
+│   │   ├── transform_category_translation.py
+│   │   ├── transform_customers.py
+│   │   ├── transform_geolocation.py
+│   │   ├── transform_orders.py
+│   │   ├── transform_order_items.py
+│   │   ├── transform_payments.py
+│   │   ├── transform_products.py
+│   │   ├── transform_reviews.py
+│   │   ├── transform_sellers.py
+│   │   └── validate_all.py
+│   │
 │   ├── loading/
+│   │   ├── db_config.py
+│   │   ├── load_data.py
+│   │   ├── load_geolocation.py
+│   │   ├── test_connection.py
+│   │   └── validate_database.py
+│   │
 │   ├── logging_config.py
 │   └── run_pipeline.py
 │
+├── tests/
 ├── .gitignore
 ├── README.md
 └── requirements.txt
@@ -233,21 +255,20 @@ Source validation
 Data transformation
 Data quality validation
 PostgreSQL schema design
-Bulk loading
+PostgreSQL bulk loading using COPY
 Database validation
 Pipeline orchestration
-Logging
+Execution logging
 Error handling
 Repeatable full-refresh execution
 Not Included
 Power BI dashboards
 Continuous data ingestion
 Production scheduling
-Incremental/CDC loading
+Incremental or CDC loading
 Cloud deployment
 11. Key Learning
 
 This project demonstrates how raw relational datasets can be transformed into validated, structured data and loaded into a PostgreSQL database through a repeatable ETL pipeline.
 
-It also demonstrates practical handling of data-quality issues, database constraints, bulk loading, pipeline failures, and execution logging.
-
+It also demonstrates practical handling of data-quality issues, relational database constraints, bulk loading, pipeline failures, and execution logging. 
