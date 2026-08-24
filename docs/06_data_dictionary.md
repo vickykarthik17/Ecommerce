@@ -3,7 +3,7 @@
 
 ## 1. Project Overview
 
-**Project:** E-Commerce Orders & Customer Analytics ETL  
+**Project:** E-Commerce ETL Pipeline
 **Dataset:** Olist Brazilian E-Commerce Public Dataset  
 **Language:** Python  
 **Database:** PostgreSQL 18  
@@ -141,7 +141,6 @@ customers.customer_id
         v
 orders.customer_id
 ```
-
 ---
 
 ## 5.2 Orders
@@ -176,7 +175,6 @@ orders.order_id
       +--> payments.order_id
       +--> reviews.order_id
 ```
-
 ---
 
 ## 5.3 Order Items
@@ -223,7 +221,6 @@ order_items.seller_id
         v
 sellers.seller_id
 ```
-
 ---
 
 ## 5.4 Payments
@@ -258,7 +255,6 @@ payments.order_id
        v
 orders.order_id
 ```
-
 ---
 
 ## 5.5 Reviews
@@ -897,7 +893,7 @@ Logging
 Error Handling
 ```
 
-Downstream analytics and Power BI are outside the current core ETL scope.
+
 
 ---
 
