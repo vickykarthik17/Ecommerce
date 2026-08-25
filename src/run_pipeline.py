@@ -78,7 +78,6 @@ for step in steps:
         f"in {step_time:.2f} seconds"
     )
 
-
 pipeline_time = time.time() - pipeline_start
 
 logger.info(

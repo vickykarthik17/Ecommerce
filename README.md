@@ -1,4 +1,4 @@
-# E-Commerce ETL Pipeline
+﻿# E-Commerce ETL Pipeline
 
 An end-to-end batch ETL pipeline built with Python and PostgreSQL using the Olist Brazilian E-Commerce Public Dataset.
 
@@ -7,19 +7,19 @@ The pipeline extracts raw e-commerce data, validates source files, transforms th
 1. Project Overview
 
 Olist CSV Files
-      â†“
+        |
 Extraction
-      â†“
+        |
 Source Validation
-      â†“
+        |
 Transformation
-      â†“
+        |
 Transformation Validation
-      â†“
+        |
 PostgreSQL Loading
-      â†“
+        |
 Database Validation
-      â†“
+        |
 Logging & Error Handling
 
 The project demonstrates a repeatable batch ETL workflow with a full-refresh loading strategy appropriate for the static historical source dataset.
@@ -30,139 +30,124 @@ Dataset: Olist Brazilian E-Commerce Public Dataset
 
 The dataset contains approximately 100,000 orders from a Brazilian e-commerce marketplace and includes:
 
-Customers
+1. Customers
 
-Orders
+2. Orders
 
-Order Items
+3. Order Items
 
-Payments
+4. Payments
 
-Reviews
+5. Reviews
 
-Products
+6. Products
 
-Sellers
+7. Sellers
 
-Geolocation
+8. Geolocation
 
-Product Category Translation
+9. Product Category Translation
 
 The related datasets provide practical scenarios involving one-to-many relationships, missing values, duplicate observations, identifier analysis, datatype mismatches, and relational integrity.
 
 3. Technology Stack
 
-Area
+1. Area/Technology
 
-Technology
+2. Programming - Python
 
-Programming
+3. Data Processing - Pandas
 
-Python
+4. Database - PostgreSQL 18
 
-Data Processing
+5. Database Driver - psycopg
 
-Pandas
+6. Configuration - python-dotenv
 
-Database
+7. Version Control - Git & GitHub
 
-PostgreSQL 18
-
-Database Driver
-
-psycopg
-
-Configuration
-
-python-dotenv
-
-Version Control
-
-Git & GitHub
-
-Data Format
-
-CSV
+8. Data Format - CSV
 
 4. ETL Components
 
-Extraction
+Extraction:
 
-Reads all nine source CSV files.
+1. Reads all nine source CSV files.
 
-Checks that expected source files are present.
+2. Checks that expected source files are present.
 
-Validates expected columns before transformation.
+3. Validates expected columns before transformation.
 
-Reports source row and column counts.
+4. Reports source row and column counts.
 
-Transformation
+Transformation: 
 
 Transformations are based on profiling and business meaning rather than blindly removing values.
 
 The pipeline:
 
-Standardizes data types.
+1. Standardizes data types.
 
-Normalizes selected text fields.
+2. Normalizes selected text fields.
 
-Converts date columns.
+3. Converts date columns.
 
-Preserves meaningful NULL values.
+4. Preserves meaningful NULL values.
 
-Removes confirmed exact duplicate observations where justified.
+5. Removes confirmed exact duplicate observations where justified.
 
-Preserves legitimate repeated identifiers in one-to-many relationships.
+6. Preserves legitimate repeated identifiers in one-to-many relationships.
 
-Renames inconsistent source columns.
+7. Renames inconsistent source columns.
 
-Prepares PostgreSQL-compatible processed CSV files.
+8. Prepares PostgreSQL-compatible processed CSV files.
 
-Loading
+Loading:
 
 Processed datasets are loaded into PostgreSQL using PostgreSQL COPY for efficient bulk ingestion.
 
 The loading process uses a full-refresh approach:
 
 TRUNCATE existing tables
-        â†“
+        |
 Bulk load processed CSV files
-        â†“
+        |
 Validate database
+
 
 This is appropriate because the Olist source is a static historical snapshot rather than a continuously changing production feed.
 
-Validation
+Validation:
 
 Validation is performed at multiple stages:
 
-Source file and column validation
+1. Source file and column validation
 
-Transformation row/column/NULL validation
+2. Transformation row/column/NULL validation
 
-Duplicate-key validation
+3. Duplicate-key validation
 
-Database row-count validation
+4. Database row-count validation
 
-Primary and composite-key validation
+5. Primary and composite-key validation
 
-Foreign-key validation
+6. Foreign-key validation
 
-Referential-integrity validation
+7. Referential-integrity validation
 
 Logging and Error Handling
 
 The pipeline records:
 
-Pipeline start and completion
+1. Pipeline start and completion
 
-Individual ETL steps
+2. Individual ETL steps
 
-Step execution time
+3. Step execution time
 
-Error output and tracebacks
+4. Error output and tracebacks
 
-Failed pipeline steps
+5. Failed pipeline steps
 
 Logs are written to:
 
@@ -173,105 +158,105 @@ The orchestrator stops the pipeline when a dependent step fails instead of conti
 5. Project Structure
 
 Ecommerce/
-â”‚
-â”œâ”€â”€ data/
-â”‚   â”œâ”€â”€ raw/
-â”‚   â”œâ”€â”€ processed/
-â”‚   â””â”€â”€ profiling/
-â”‚
-â”œâ”€â”€ docs/
-â”‚   â”œâ”€â”€ 02_business_context.md
-â”‚   â”œâ”€â”€ 03_data_profiling.md
-â”‚   â”œâ”€â”€ 04_transformation_process.md
-â”‚   â”œâ”€â”€ 05_validation_strategy.md
-â”‚   â”œâ”€â”€ 06_data_dictionary.md
-â”‚   â”œâ”€â”€ 07_loading_and_database.md
-â”‚   â”œâ”€â”€ 08_logging_and_error_handling.md
-â”‚   â””â”€â”€ 09_challenges_and_solutions.md
-â”‚
-â”œâ”€â”€ sql/
-â”‚   â””â”€â”€ schema.sql
-â”‚
-â”œâ”€â”€ src/
-â”‚   â”œâ”€â”€ extraction/
-â”‚   â”‚   â”œâ”€â”€ expected_columns.py
-â”‚   â”‚   â”œâ”€â”€ extract_data.py
-â”‚   â”‚   â””â”€â”€ validate_data.py
-â”‚   â”‚
-â”‚   â”œâ”€â”€ profiling/
-â”‚   â”‚   â”œâ”€â”€ analyse_keys.py
-â”‚   â”‚   â”œâ”€â”€ analyse_relationships.py
-â”‚   â”‚   â”œâ”€â”€ investigate_geolocation.py
-â”‚   â”‚   â”œâ”€â”€ investigate_reviews.py
-â”‚   â”‚   â””â”€â”€ profile_sources.py
-â”‚   â”‚
-â”‚   â”œâ”€â”€ transformation/
-â”‚   â”‚   â”œâ”€â”€ transform_category_translation.py
-â”‚   â”‚   â”œâ”€â”€ transform_customers.py
-â”‚   â”‚   â”œâ”€â”€ transform_geolocation.py
-â”‚   â”‚   â”œâ”€â”€ transform_orders.py
-â”‚   â”‚   â”œâ”€â”€ transform_order_items.py
-â”‚   â”‚   â”œâ”€â”€ transform_payments.py
-â”‚   â”‚   â”œâ”€â”€ transform_products.py
-â”‚   â”‚   â”œâ”€â”€ transform_reviews.py
-â”‚   â”‚   â”œâ”€â”€ transform_sellers.py
-â”‚   â”‚   â””â”€â”€ validate_all.py
-â”‚   â”‚
-â”‚   â”œâ”€â”€ loading/
-â”‚   â”‚   â”œâ”€â”€ db_config.py
-â”‚   â”‚   â”œâ”€â”€ load_data.py
-â”‚   â”‚   â”œâ”€â”€ load_geolocation.py
-â”‚   â”‚   â”œâ”€â”€ test_connection.py
-â”‚   â”‚   â””â”€â”€ validate_database.py
-â”‚   â”‚
-â”‚   â”œâ”€â”€ logging_config.py
-â”‚   â””â”€â”€ run_pipeline.py
-â”‚
-â”œâ”€â”€ tests/
-â”œâ”€â”€ .gitignore
-â”œâ”€â”€ README.md
-â””â”€â”€ requirements.txt
+|
+|-- data/
+|   |-- raw/
+|   |-- processed/
+|   `-- profiling/
+|
+|-- docs/
+|   |-- 02_business_context.md
+|   |-- 03_data_profiling.md
+|   |-- 04_transformation_process.md
+|   |-- 05_validation_strategy.md
+|   |-- 06_data_dictionary.md
+|   |-- 07_loading_and_database.md
+|   |-- 08_logging_and_error_handling.md
+|   `-- 09_challenges_and_solutions.md
+|
+|-- sql/
+|   `-- schema.sql
+|
+|-- src/
+|   |-- extraction/
+|   |   |-- expected_columns.py
+|   |   |-- extract_data.py
+|   |   `-- validate_data.py
+|   |
+|   |-- profiling/
+|   |   |-- analyse_keys.py
+|   |   |-- analyse_relationships.py
+|   |   |-- investigate_geolocation.py
+|   |   |-- investigate_reviews.py
+|   |   `-- profile_sources.py
+|   |
+|   |-- transformation/
+|   |   |-- transform_category_translation.py
+|   |   |-- transform_customers.py
+|   |   |-- transform_geolocation.py
+|   |   |-- transform_orders.py
+|   |   |-- transform_order_items.py
+|   |   |-- transform_payments.py
+|   |   |-- transform_products.py
+|   |   |-- transform_reviews.py
+|   |   |-- transform_sellers.py
+|   |   `-- validate_all.py
+|   |
+|   |-- loading/
+|   |   |-- db_config.py
+|   |   |-- load_data.py
+|   |   |-- load_geolocation.py
+|   |   |-- test_connection.py
+|   |   `-- validate_database.py
+|   |
+|   |-- logging_config.py
+|   `-- run_pipeline.py
+|
+|-- tests/
+|-- .gitignore
+|-- README.md
+`-- requirements.txt
 
 6. Documentation / Recommended Study Order
 
 For someone reviewing the project for the first time, the recommended order is:
 
 README.md
-    â†“
+        |
 02_business_context.md
-    â†“
+        |
 03_data_profiling.md
-    â†“
+        |
 06_data_dictionary.md
-    â†“
+        |
 04_transformation_process.md
-    â†“
+        |
 05_validation_strategy.md
-    â†“
+        |
 07_loading_and_database.md
-    â†“
+        |
 08_logging_and_error_handling.md
-    â†“
+        |
 09_challenges_and_solutions.md
 
 This follows the reasoning behind the project:
 
 What is the project?
-        â†“
+        |
 What does the business data mean?
-        â†“
+        |
 What did we discover in the raw data?
-        â†“
+        |
 What does each field mean?
-        â†“
+        |
 What did we transform and why?
-        â†“
+        |
 How did we validate it?
-        â†“
+        |
 How was it loaded into PostgreSQL?
-        â†“
+        |
 How does the pipeline handle execution and failures?
-        â†“
+        |
 What problems did we encounter and solve?
 
 7. Running the Pipeline
@@ -323,47 +308,47 @@ Data-quality decisions are based on the meaning of each dataset and the requirem
 
 Examples:
 
-Missing delivery dates can be valid depending on order lifecycle state.
+1. Missing delivery dates can be valid depending on order lifecycle state.
 
-Review comments are optional fields.
+2. Review comments are optional fields.
 
-Repeated geolocation ZIP prefixes can represent different coordinates.
+3. Repeated geolocation ZIP prefixes can represent different coordinates.
 
-Review uniqueness is validated using review_id + order_id.
+4. Review uniqueness is validated using review_id + order_id.
 
-Order-item uniqueness is validated using order_id + order_item_id.
+5. Order-item uniqueness is validated using order_id + order_item_id.
 
-Payment uniqueness is validated using order_id + payment_sequential.
+6. Payment uniqueness is validated using order_id + payment_sequential.
 
 This approach prevents valid business records from being removed simply because a value is repeated or missing.
 
 9. Key Challenges
 
-Geolocation Duplicates
+1. Geolocation Duplicates
 
 The raw geolocation dataset contained exact duplicate observations as well as multiple valid records for the same ZIP prefix.
 
 Solution: Remove only exact duplicate rows and preserve valid repeated ZIP prefixes. The processed dataset contains 738,327 rows from 1,000,163 raw rows.
 
-Review Identifiers
+2. Review Identifiers
 
 Individual review_id values were not sufficient to establish uniqueness.
 
 Solution: Use review_id + order_id as the composite database key.
 
-PostgreSQL Integer Loading
+3. PostgreSQL Integer Loading
 
 Some product integer attributes were written to CSV as values such as 40.0.
 
 Solution: Align the transformed values with the PostgreSQL integer schema before bulk loading.
 
-Repeat-Safe Loading
+4. Repeat-Safe Loading
 
 Rerunning the same complete dataset against existing tables caused duplicate-key conflicts.
 
 Solution: Use a full-refresh strategy with TRUNCATE ... CASCADE before bulk loading.
 
-Pipeline Failure Handling
+5. Pipeline Failure Handling
 
 A controlled failure was used to verify that the orchestrator captures errors and stops downstream processing.
 
@@ -373,45 +358,17 @@ Result: The failed step and traceback were logged and the pipeline stopped as de
 
 The latest successful end-to-end run loaded:
 
-Dataset
-
-Rows
-
-Customers
-
-99,441
-
-Orders
-
-99,441
-
-Order Items
-
-112,650
-
-Payments
-
-103,886
-
-Reviews
-
-99,224
-
-Products
-
-32,951
-
-Sellers
-
-3,095
-
-Geolocation
-
-738,327
-
-Category Translation
-
-71
+| # | Dataset | Rows |
+|---|---|---:|
+| 1 | Customers | 99,441 |
+| 2 | Orders | 99,441 |
+| 3 | Order Items | 112,650 |
+| 4 | Payments | 103,886 |
+| 5 | Reviews | 99,224 |
+| 6 | Products | 32,951 |
+| 7 | Sellers | 3,095 |
+| 8 | Geolocation | 738,327 |
+| 9 | Category Translation | 71 |
 
 Database key validation and foreign-key validation completed successfully.
 
@@ -421,43 +378,43 @@ The latest full pipeline execution completed successfully in approximately 69.48
 
 Included
 
-End-to-end ETL
+1. End-to-end ETL
 
-Data extraction
+2. Data extraction
 
-Source validation
+3. Source validation
 
-Data profiling
+4. Data profiling
 
-Business-driven data transformation
+5. Business-driven data transformation
 
-Data-quality validation
+6. Data-quality validation
 
-PostgreSQL schema design
+7. PostgreSQL schema design
 
-PostgreSQL bulk loading using COPY
+8. PostgreSQL bulk loading using COPY
 
-Database validation
+9. Database validation
 
-Pipeline orchestration
+10. Pipeline orchestration
 
-Execution logging
+11. Execution logging
 
-Error handling
+12. Error handling
 
-Repeatable full-refresh execution
+13. Repeatable full-refresh execution
 
-Project documentation
+14. Project documentation
 
-Continuous data ingestion
+1. Continuous data ingestion
 
-Production scheduling
+2. Production scheduling
 
-Incremental or CDC loading
+3. Incremental or CDC loading
 
-Cloud deployment
+4. Cloud deployment
 
-Streaming ingestion
+5. Streaming ingestion
 
 These were intentionally kept outside the current scope because the source is a static historical dataset and the project objective is to demonstrate a complete batch ETL workflow.
 
@@ -467,44 +424,44 @@ This project demonstrates how raw relational datasets can be transformed into va
 
 The project also demonstrates practical engineering decisions around:
 
-Data profiling before cleaning
+1. Data profiling before cleaning
 
-Business-driven transformation rules
+2. Business-driven transformation rules
 
-Primary and composite key design
+3. Primary and composite key design
 
-Referential integrity
+4. Referential integrity
 
-NULL interpretation
+5. NULL interpretation
 
-Duplicate investigation
+6. Duplicate investigation
 
-PostgreSQL datatype compatibility
+7. PostgreSQL datatype compatibility
 
-Bulk loading
+8. Bulk loading
 
-Full-refresh batch processing
+9. Full-refresh batch processing
 
-Pipeline orchestration
+10. Pipeline orchestration
 
-Logging and error handling
+11. Logging and error handling
 
-Failure investigation and recovery
+12. Failure investigation and recovery
 
 The central principle is:
 
 Understand the data
-        â†“
+        |
 Profile the data
-        â†“
+        |
 Define business meaning
-        â†“
+        |
 Transform deliberately
-        â†“
+        |
 Validate
-        â†“
+        |
 Load into PostgreSQL
-        â†“
+        |
 Validate again
-        â†“
+        |
 Log and monitor execution
