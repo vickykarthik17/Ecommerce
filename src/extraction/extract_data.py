@@ -5,7 +5,6 @@ import pandas as pd
 from expected_columns import expected_columns
 from validate_data import validate_columns
 
-
 project_root = Path(__file__).resolve().parents[2]
 raw_data_path = project_root / "data" / "raw"
 
