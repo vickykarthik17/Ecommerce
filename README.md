@@ -1,11 +1,16 @@
-﻿# E-Commerce ETL Pipeline
+# E-Commerce ETL Pipeline
 
-An end-to-end batch ETL pipeline built with Python and PostgreSQL using the Olist Brazilian E-Commerce Public Dataset.
+An end-to-end batch ETL pipeline built with Python and PostgreSQL, using the Olist Brazilian E-Commerce Public Dataset as the source data.
 
-The pipeline extracts raw e-commerce data, validates source files, transforms the datasets based on business meaning and profiling findings, loads the processed data into PostgreSQL, and performs database-level validation with logging and error handling.
+The pipeline extracts raw e-commerce data, validates the source files, transforms the datasets based on business meaning and profiling findings, loads the processed data into PostgreSQL, and performs database-level validation with full logging and error handling along the way.
 
-1. Project Overview
+---
 
+## 1. Project Overview
+
+The pipeline follows a straightforward, linear flow:
+
+```
 Olist CSV Files
         |
 Extraction
@@ -21,142 +26,121 @@ PostgreSQL Loading
 Database Validation
         |
 Logging & Error Handling
+```
 
-The project demonstrates a repeatable batch ETL workflow with a full-refresh loading strategy appropriate for the static historical source dataset.
+The project demonstrates a repeatable batch ETL workflow using a full-refresh loading strategy, which fits well given that the source dataset is static and historical rather than continuously updated.
 
-2. Dataset
+---
 
-Dataset: Olist Brazilian E-Commerce Public Dataset
+## 2. Dataset
 
-The dataset contains approximately 100,000 orders from a Brazilian e-commerce marketplace and includes:
+**Dataset used:** Olist Brazilian E-Commerce Public Dataset
 
-1. Customers
+The dataset contains roughly 100,000 orders from a Brazilian e-commerce marketplace, spread across the following files:
 
-2. Orders
+- Customers
+- Orders
+- Order Items
+- Payments
+- Reviews
+- Products
+- Sellers
+- Geolocation
+- Product Category Translation
 
-3. Order Items
+Together, these datasets present a good range of real-world data challenges: one-to-many relationships, missing values, duplicate observations, tricky identifier logic, datatype mismatches, and referential integrity constraints.
 
-4. Payments
+---
 
-5. Reviews
+## 3. Technology Stack
 
-6. Products
+| Area | Technology |
+|---|---|
+| Programming | Python |
+| Data Processing | Pandas |
+| Database | PostgreSQL 18 |
+| Database Driver | psycopg |
+| Configuration | python-dotenv |
+| Version Control | Git & GitHub |
+| Data Format | CSV |
 
-7. Sellers
+---
 
-8. Geolocation
+## 4. ETL Components
 
-9. Product Category Translation
+### Extraction
 
-The related datasets provide practical scenarios involving one-to-many relationships, missing values, duplicate observations, identifier analysis, datatype mismatches, and relational integrity.
+- Reads all nine source CSV files.
+- Checks that every expected source file is actually present.
+- Validates expected columns before any transformation begins.
+- Reports source row and column counts for visibility.
 
-3. Technology Stack
+### Transformation
 
-1. Area/Technology
+Transformations are driven by data profiling and business context, not by blanket rules that strip out anything unusual. The pipeline:
 
-2. Programming - Python
+- Standardizes data types.
+- Normalizes selected text fields.
+- Converts date columns into proper date formats.
+- Preserves NULL values where they carry legitimate meaning.
+- Removes confirmed exact duplicate records where that's justified.
+- Keeps legitimate repeated identifiers intact in one-to-many relationships.
+- Renames inconsistent source columns for clarity.
+- Prepares PostgreSQL-compatible processed CSV files ready for loading.
 
-3. Data Processing - Pandas
+### Loading
 
-4. Database - PostgreSQL 18
+Processed datasets are loaded into PostgreSQL using the `COPY` command for efficient bulk ingestion.
 
-5. Database Driver - psycopg
+The loading process follows a full-refresh approach:
 
-6. Configuration - python-dotenv
-
-7. Version Control - Git & GitHub
-
-8. Data Format - CSV
-
-4. ETL Components
-
-Extraction:
-
-1. Reads all nine source CSV files.
-
-2. Checks that expected source files are present.
-
-3. Validates expected columns before transformation.
-
-4. Reports source row and column counts.
-
-Transformation: 
-
-Transformations are based on profiling and business meaning rather than blindly removing values.
-
-The pipeline:
-
-1. Standardizes data types.
-
-2. Normalizes selected text fields.
-
-3. Converts date columns.
-
-4. Preserves meaningful NULL values.
-
-5. Removes confirmed exact duplicate observations where justified.
-
-6. Preserves legitimate repeated identifiers in one-to-many relationships.
-
-7. Renames inconsistent source columns.
-
-8. Prepares PostgreSQL-compatible processed CSV files.
-
-Loading:
-
-Processed datasets are loaded into PostgreSQL using PostgreSQL COPY for efficient bulk ingestion.
-
-The loading process uses a full-refresh approach:
-
+```
 TRUNCATE existing tables
         |
 Bulk load processed CSV files
         |
 Validate database
+```
 
+This approach makes sense here because the Olist source is a static historical snapshot, not a live production feed that changes continuously.
 
-This is appropriate because the Olist source is a static historical snapshot rather than a continuously changing production feed.
+### Validation
 
-Validation:
-
-Validation is performed at multiple stages:
+Validation happens at multiple stages throughout the pipeline:
 
 1. Source file and column validation
-
-2. Transformation row/column/NULL validation
-
+2. Transformation-level row, column, and NULL validation
 3. Duplicate-key validation
-
 4. Database row-count validation
-
 5. Primary and composite-key validation
-
 6. Foreign-key validation
-
 7. Referential-integrity validation
 
-Logging and Error Handling
+---
 
-The pipeline records:
+## 5. Logging and Error Handling
 
-1. Pipeline start and completion
+The pipeline keeps a detailed record of its execution, including:
 
-2. Individual ETL steps
-
-3. Step execution time
-
-4. Error output and tracebacks
-
-5. Failed pipeline steps
+- Pipeline start and completion times
+- Each individual ETL step
+- Step-level execution time
+- Error output and full tracebacks
+- Any failed pipeline steps
 
 Logs are written to:
 
+```
 logs/pipeline.log
+```
 
-The orchestrator stops the pipeline when a dependent step fails instead of continuing with potentially invalid data.
+If a dependent step fails, the orchestrator stops the pipeline immediately rather than continuing forward with potentially invalid data.
 
-5. Project Structure
+---
 
+## 6. Project Structure
+
+```
 Ecommerce/
 |
 |-- data/
@@ -212,15 +196,18 @@ Ecommerce/
 |   |-- logging_config.py
 |   `-- run_pipeline.py
 |
-|-- tests/
 |-- .gitignore
 |-- README.md
 `-- requirements.txt
+```
 
-6. Documentation / Recommended Study Order
+---
 
-For someone reviewing the project for the first time, the recommended order is:
+## 7. Documentation Guide (Recommended Reading Order)
 
+For anyone reviewing this project for the first time, it's easiest to follow this order:
+
+```
 README.md
         |
 02_business_context.md
@@ -238,9 +225,11 @@ README.md
 08_logging_and_error_handling.md
         |
 09_challenges_and_solutions.md
+```
 
-This follows the reasoning behind the project:
+This sequence mirrors the actual thought process behind the project:
 
+```
 What is the project?
         |
 What does the business data mean?
@@ -258,105 +247,113 @@ How was it loaded into PostgreSQL?
 How does the pipeline handle execution and failures?
         |
 What problems did we encounter and solve?
+```
 
-7. Running the Pipeline
+---
 
-Step 1: Clone the Repository
+## 8. Setup and Usage
 
+### Step 1: Clone the Repository
+
+```bash
 git clone https://github.com/vickykarthik17/Ecommerce.git
 cd Ecommerce
+```
 
-Step 2: Install Dependencies
+### Step 2: Install Dependencies
 
+```bash
 pip install -r requirements.txt
+```
 
-Step 3: Configure PostgreSQL
+### Step 3: Configure PostgreSQL
 
-Create a .env file in the project root:
+Create a `.env` file in the project root with the following values:
 
+```
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=ecommerce
 DB_USER=postgres
 DB_PASSWORD=YOUR_POSTGRES_PASSWORD
+```
 
-Step 4: Create the Database
+### Step 4: Create the Database
 
-Create a PostgreSQL database named:
+Create a PostgreSQL database named `ecommerce`, then apply the schema:
 
-ecommerce
-
-Then apply the schema:
-
+```bash
 psql -U postgres -d ecommerce -f sql/schema.sql
+```
 
-Step 5: Run the Complete Pipeline
+### Step 5: Run the Complete Pipeline
 
-From the project root:
+From the project root, run:
 
+```bash
 python src/run_pipeline.py
+```
 
-The orchestrator runs extraction, validation, transformation, PostgreSQL loading, and final database validation in sequence.
+The orchestrator runs extraction, validation, transformation, PostgreSQL loading, and final database validation, all in sequence.
 
-If a step fails, the pipeline captures the subprocess error, logs the failed step, and stops execution.
+If any step fails, the pipeline catches the subprocess error, logs which step failed, and stops execution rather than pushing forward.
 
-8. Data Quality Philosophy
+---
 
-The pipeline does not automatically remove every NULL or repeated value.
+## 9. Data Quality Philosophy
 
-Data-quality decisions are based on the meaning of each dataset and the requirements of the target PostgreSQL schema.
+The pipeline doesn't automatically strip out every NULL or repeated value it finds. Instead, data-quality decisions are grounded in what each dataset actually means and what the target PostgreSQL schema requires.
 
-Examples:
+A few examples of that reasoning in practice:
 
-1. Missing delivery dates can be valid depending on order lifecycle state.
+- Missing delivery dates can be entirely valid, depending on where an order sits in its lifecycle.
+- Review comments are optional fields, so a blank one isn't a data quality issue.
+- Repeated geolocation ZIP prefixes can legitimately represent different coordinates.
+- Review uniqueness is validated using `review_id + order_id`.
+- Order-item uniqueness is validated using `order_id + order_item_id`.
+- Payment uniqueness is validated using `order_id + payment_sequential`.
 
-2. Review comments are optional fields.
+This approach avoids the common trap of deleting valid business records just because a value happens to repeat or appear missing.
 
-3. Repeated geolocation ZIP prefixes can represent different coordinates.
+---
 
-4. Review uniqueness is validated using review_id + order_id.
+## 10. Key Challenges
 
-5. Order-item uniqueness is validated using order_id + order_item_id.
+**1. Geolocation Duplicates**
 
-6. Payment uniqueness is validated using order_id + payment_sequential.
+The raw geolocation dataset contained both exact duplicate rows and multiple genuinely valid records sharing the same ZIP prefix.
 
-This approach prevents valid business records from being removed simply because a value is repeated or missing.
+*Solution:* Remove only the exact duplicates while preserving valid repeated ZIP prefixes. The processed dataset ended up with 738,327 rows, down from 1,000,163 raw rows.
 
-9. Key Challenges
+**2. Review Identifiers**
 
-1. Geolocation Duplicates
+Individual `review_id` values weren't sufficient on their own to guarantee uniqueness.
 
-The raw geolocation dataset contained exact duplicate observations as well as multiple valid records for the same ZIP prefix.
+*Solution:* Use `review_id + order_id` together as the composite database key.
 
-Solution: Remove only exact duplicate rows and preserve valid repeated ZIP prefixes. The processed dataset contains 738,327 rows from 1,000,163 raw rows.
+**3. PostgreSQL Integer Loading**
 
-2. Review Identifiers
+Some product integer attributes were being written to CSV as float-like values, such as `40.0`.
 
-Individual review_id values were not sufficient to establish uniqueness.
+*Solution:* Align the transformed values with the PostgreSQL integer schema before running the bulk load.
 
-Solution: Use review_id + order_id as the composite database key.
+**4. Repeat-Safe Loading**
 
-3. PostgreSQL Integer Loading
+Rerunning the pipeline against existing tables caused duplicate-key conflicts.
 
-Some product integer attributes were written to CSV as values such as 40.0.
+*Solution:* Adopt a full-refresh strategy using `TRUNCATE ... CASCADE` before each bulk load.
 
-Solution: Align the transformed values with the PostgreSQL integer schema before bulk loading.
+**5. Pipeline Failure Handling**
 
-4. Repeat-Safe Loading
+A controlled failure was deliberately introduced to confirm the orchestrator would catch errors and halt downstream processing correctly.
 
-Rerunning the same complete dataset against existing tables caused duplicate-key conflicts.
+*Result:* The failed step and its traceback were logged as expected, and the pipeline stopped exactly as designed.
 
-Solution: Use a full-refresh strategy with TRUNCATE ... CASCADE before bulk loading.
+---
 
-5. Pipeline Failure Handling
+## 11. Validation Results
 
-A controlled failure was used to verify that the orchestrator captures errors and stops downstream processing.
-
-Result: The failed step and traceback were logged and the pipeline stopped as designed.
-
-10. Validation Result
-
-The latest successful end-to-end run loaded:
+The most recent successful end-to-end run loaded the following row counts:
 
 | # | Dataset | Rows |
 |---|---|---:|
@@ -370,86 +367,65 @@ The latest successful end-to-end run loaded:
 | 8 | Geolocation | 738,327 |
 | 9 | Category Translation | 71 |
 
-Database key validation and foreign-key validation completed successfully.
+Database key validation and foreign-key validation both completed successfully.
 
-The latest full pipeline execution completed successfully in approximately 69.48 seconds.
+The full pipeline execution finished end to end in approximately 69.48 seconds.
 
-11. Project Scope
+---
 
-Included
+## 12. Project Scope
 
-1. End-to-end ETL
+### In Scope
 
-2. Data extraction
+- End-to-end ETL
+- Data extraction
+- Source validation
+- Data profiling
+- Business-driven data transformation
+- Data-quality validation
+- PostgreSQL schema design
+- PostgreSQL bulk loading using `COPY`
+- Database validation
+- Pipeline orchestration
+- Execution logging
+- Error handling
+- Repeatable full-refresh execution
+- Project documentation
 
-3. Source validation
+### Out of Scope
 
-4. Data profiling
+- Continuous data ingestion
+- Production scheduling
+- Incremental or CDC (change data capture) loading
+- Cloud deployment
+- Streaming ingestion
 
-5. Business-driven data transformation
+These were deliberately left out of scope. Since the source is a static historical dataset, the project's real objective was to demonstrate a complete, well-validated batch ETL workflow rather than a production-grade streaming system.
 
-6. Data-quality validation
+---
 
-7. PostgreSQL schema design
+## 13. Key Learning
 
-8. PostgreSQL bulk loading using COPY
+This project shows how raw relational datasets can be turned into validated, well-structured data and loaded into PostgreSQL through a repeatable ETL pipeline.
 
-9. Database validation
+Beyond that, it reflects a number of practical engineering decisions, including:
 
-10. Pipeline orchestration
+- Profiling data before cleaning it
+- Defining transformation rules based on business meaning
+- Designing primary and composite keys
+- Enforcing referential integrity
+- Interpreting NULLs correctly rather than removing them by default
+- Investigating duplicates before deleting them
+- Handling PostgreSQL datatype compatibility issues
+- Bulk loading efficiently
+- Running full-refresh batch processing
+- Orchestrating the pipeline end to end
+- Logging and error handling
+- Investigating and recovering from failures
 
-11. Execution logging
+The guiding principle throughout the project can be summed up as:
 
-12. Error handling
-
-13. Repeatable full-refresh execution
-
-14. Project documentation
-
-1. Continuous data ingestion
-
-2. Production scheduling
-
-3. Incremental or CDC loading
-
-4. Cloud deployment
-
-5. Streaming ingestion
-
-These were intentionally kept outside the current scope because the source is a static historical dataset and the project objective is to demonstrate a complete batch ETL workflow.
-
-12. Key Learning
-
-This project demonstrates how raw relational datasets can be transformed into validated, structured data and loaded into PostgreSQL through a repeatable ETL pipeline.
-
-The project also demonstrates practical engineering decisions around:
-
-1. Data profiling before cleaning
-
-2. Business-driven transformation rules
-
-3. Primary and composite key design
-
-4. Referential integrity
-
-5. NULL interpretation
-
-6. Duplicate investigation
-
-7. PostgreSQL datatype compatibility
-
-8. Bulk loading
-
-9. Full-refresh batch processing
-
-10. Pipeline orchestration
-
-11. Logging and error handling
-
-12. Failure investigation and recovery
-
-The central principle is:
-
+```
 Understand the data
         |
 Profile the data
@@ -465,3 +441,4 @@ Load into PostgreSQL
 Validate again
         |
 Log and monitor execution
+```

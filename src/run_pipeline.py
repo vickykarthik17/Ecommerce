@@ -33,6 +33,7 @@ steps = [
 ]
 
 
+logger.info("")
 logger.info("Pipeline started")
 
 pipeline_start = time.time()
