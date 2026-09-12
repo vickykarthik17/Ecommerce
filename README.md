@@ -1,5 +1,37 @@
 # E-Commerce ETL Pipeline
 
+## Run the dashboard
+
+From the project root, install dependencies and start Streamlit with the active Python interpreter:
+
+```powershell
+python -m pip install -r requirements.txt
+python -m streamlit run frontend/app.py
+```
+
+Using `python -m streamlit` avoids Windows PATH issues when the Streamlit executable is not registered in PowerShell.
+
+### Configure PostgreSQL
+
+Copy `.env.example` to `.env` for local development, or provide the same variables through the deployment platform's secret configuration. The application requires `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DASHBOARD_USERNAME`, and `DASHBOARD_PASSWORD`; it will not fall back to a local database or start without dashboard credentials.
+
+The ETL action is protected by dashboard authentication and a PostgreSQL advisory lock. This prevents simultaneous full-refresh runs across multiple application containers.
+
+Create the target schema before the first pipeline run:
+
+```powershell
+psql "$env:DATABASE_URL" -f sql/schema.sql
+```
+
+For container deployment, build and run:
+
+```powershell
+docker build -t ecommerce-etl .
+docker run --env-file .env -p 8501:8501 ecommerce-etl
+```
+
+The container listens on `0.0.0.0` and honors the platform-provided `PORT` variable.
+
 An end-to-end batch ETL pipeline built with Python and PostgreSQL, using the Olist Brazilian E-Commerce Public Dataset as the source data.
 
 The pipeline extracts raw e-commerce data, validates the source files, transforms the datasets based on business meaning and profiling findings, loads the processed data into PostgreSQL, and performs database-level validation with full logging and error handling along the way.

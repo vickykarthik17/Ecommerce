@@ -1,2 +1,5 @@
-# Add project Python dependencies here
-pandas
+# Runtime dependencies for the ETL pipeline and Streamlit viewer
+pandas>=2.0,<3
+psycopg[binary]>=3.2,<4
+python-dotenv>=1.0,<2
+streamlit>=1.39,<2

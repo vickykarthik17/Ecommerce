@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import time
+from loading.db_lock import pipeline_database_lock
 from pathlib import Path
 
 from logging_config import setup_logger
@@ -9,6 +10,13 @@ from logging_config import setup_logger
 project_root = Path(__file__).resolve().parents[1]
 
 logger = setup_logger()
+
+
+pipeline_lock = pipeline_database_lock()
+if not pipeline_lock.__enter__():
+    logger.error("Pipeline is already running in another container")
+    pipeline_lock.__exit__(None, None, None)
+    sys.exit(2)
 
 
 steps = [
@@ -85,3 +93,5 @@ logger.info(
     f"Pipeline completed successfully in "
     f"{pipeline_time:.2f} seconds"
 )
+
+pipeline_lock.__exit__(None, None, None)

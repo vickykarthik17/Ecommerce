@@ -4,10 +4,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def _required_setting(name):
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"Required database setting is missing: {name}")
+    return value
+
+
 DB_CONFIG = {
-    "host": os.getenv("DB_HOST", "localhost"),
-    "port": os.getenv("DB_PORT", "5432"),
-    "dbname": os.getenv("DB_NAME", "ecommerce"),
-    "user": os.getenv("DB_USER", "postgres"),
-    "password": os.getenv("DB_PASSWORD"),
+    "host": _required_setting("DB_HOST"),
+    "port": _required_setting("DB_PORT"),
+    "dbname": _required_setting("DB_NAME"),
+    "user": _required_setting("DB_USER"),
+    "password": _required_setting("DB_PASSWORD"),
+    "connect_timeout": 5,
 }
